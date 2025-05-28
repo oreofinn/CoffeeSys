@@ -1,9 +1,9 @@
 <?php
-$host = "YOUR_SUPABASE_HOST";
+$host = "db.bzgbztcvbrbiwfwpypib.supabase.co";
 $port = "5432";
-$dbname = "YOUR_DB_NAME";
-$user = "YOUR_DB_USER";
-$password = "YOUR_DB_PASSWORD";
+$dbname = "postgres";
+$user = "postgres";
+$password = "rancesJcne092121";
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
 
