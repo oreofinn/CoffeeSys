@@ -1,0 +1,649 @@
+<?php
+include '../includes/connection.php';
+include '../includes/sidebar.php';
+
+/**
+ * Converts a recipe quantity in a specific unit to the corresponding stock unit quantity
+ *
+ * @param float $quantity      The quantity used in the recipe (e.g. number of tablespoons)
+ * @param int   $unit_id       The unit ID from the units table
+ * @param int   $ingredient_id The ingredient ID to look up its stock unit and type
+ * @return float               The equivalent quantity in the ingredient’s stock unit (grams or ml)
+ */
+function convertToStockUnit($quantity, $unit_id, $ingredient_id) {
+    global $db;
+
+    // 1) Get recipe unit name
+    $u = mysqli_fetch_assoc(mysqli_query(
+        $db,
+        "SELECT unit_name FROM units WHERE unit_id = '$unit_id'"
+    ));
+    $recipeUnit = $u['unit_name'];
+
+    // 2) Get ingredient’s stock unit (g or ml) and type
+    $ing = mysqli_fetch_assoc(mysqli_query(
+        $db,
+        "SELECT UNIT AS stockUnit, type_id FROM ingredients WHERE INGREDIENTS_ID = '$ingredient_id'"
+    ));
+    $stockUnit = $ing['stockUnit'];
+    $typeId    = $ing['type_id'];
+
+    // 3) If recipe unit matches stock unit, no conversion needed
+    if ($recipeUnit === $stockUnit) {
+        return $quantity;
+    }
+
+    // 4) Built-in metric conversions (kg ↔ g, lt ↔ ml)
+    if (($recipeUnit == 'kg' && $stockUnit == 'g') || ($recipeUnit == 'lt' && $stockUnit == 'ml')) {
+        return $quantity * 1000;
+    }
+    if (($recipeUnit == 'g' && $stockUnit == 'kg') || ($recipeUnit == 'ml' && $stockUnit == 'lt')) {
+        return $quantity / 1000;
+    }
+
+    // 5) Ingredient-specific override
+    $spec = mysqli_fetch_assoc(mysqli_query(
+        $db,
+        "SELECT equivalent_in_grams 
+         FROM ingredient_unit_equivalence 
+        WHERE ingredient_id = '$ingredient_id' 
+          AND unit_name     = '$recipeUnit' 
+        LIMIT 1"
+    ));
+    if ($spec) {
+        return $quantity * $spec['equivalent_in_grams'];
+    }
+
+    // 6) Type-based fallback
+    $typeDef = mysqli_fetch_assoc(mysqli_query(
+        $db,
+        "SELECT equivalent_amount 
+           FROM type_unit_equivalence 
+          WHERE type_id   = '$typeId' 
+            AND unit_name = '$recipeUnit' 
+          LIMIT 1"
+    ));
+    if ($typeDef) {
+        return $quantity * $typeDef['equivalent_amount'];
+    }
+
+    // 7) Ultimate fallback: log and return raw quantity
+    error_log("No conversion rule for unit '$recipeUnit' on ingredient #$ingredient_id");
+    return $quantity;
+}
+
+// Check if 'action' is set in the URL and equals 'add'
+if (isset($_GET['action']) && $_GET['action'] === 'add') {
+    // Retrieve recipe name, ingredients, quantities, and units
+    $recipe_name = $_POST['recipe_name'];
+    $ingredients = $_POST['INGREDIENTS_ID'];
+    $quantities  = $_POST['quantity'];
+    $units       = $_POST['unit_id'];
+
+    // Generate custom recipe code (RCP + 4-digit number)
+    $recipeCodeQuery = "SELECT MAX(CAST(SUBSTRING(recipe_code, 4) AS UNSIGNED)) AS max_code FROM recipes";
+    $result = mysqli_query($db, $recipeCodeQuery);
+    if (!$result) {
+        die('Error executing recipe code query: ' . mysqli_error($db));
+    }
+    $row = mysqli_fetch_assoc($result);
+    $max_code = isset($row['max_code']) ? $row['max_code'] + 1 : 1;
+    $recipe_code = 'RCP' . str_pad($max_code, 4, '0', STR_PAD_LEFT);
+
+    // Grab the new category from the form
+    $category = mysqli_real_escape_string($db, $_POST['category']);
+
+    // Insert recipe into the recipes table (including category)
+    $recipeQuery = 
+        "INSERT INTO recipes (recipe_name, recipe_code, category) 
+         VALUES ('$recipe_name', '$recipe_code', '$category')";
+    if (!mysqli_query($db, $recipeQuery)) {
+        die('Error inserting recipe: ' . mysqli_error($db));
+    }
+
+    // Get the ID of the newly inserted recipe
+    $recipe_id = mysqli_insert_id($db);
+
+    // Insert ingredients and deduct stock
+    for ($i = 0; $i < count($ingredients); $i++) {
+        $ingredient_id = $ingredients[$i];
+        $quantity      = $quantities[$i];
+        $unit_id       = $units[$i];
+
+        // Insert into recipe_ingredients
+        $insertIng = 
+            "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit_id) 
+             VALUES ('$recipe_id', '$ingredient_id', '$quantity', '$unit_id')";
+        if (!mysqli_query($db, $insertIng)) {
+            die('Error inserting ingredient: ' . mysqli_error($db));
+        }
+
+        // Convert and deduct stock
+        $usedQty = convertToStockUnit($quantity, $unit_id, $ingredient_id);
+        $updateStock = 
+            "UPDATE ingredients 
+                SET ING_QUANTITY = ING_QUANTITY - '$usedQty' 
+              WHERE INGREDIENTS_ID = '$ingredient_id'";
+        if (!mysqli_query($db, $updateStock)) {
+            die('Error updating stock: ' . mysqli_error($db));
+        }
+    }
+
+    // Redirect back to the recipe page
+    echo "<script>
+            alert('Recipe added successfully!');
+            window.location = 'pro_recipe.php';
+          </script>";
+    exit();
+}
+
+// Fetch ingredients for dropdown
+$ingredientsSql = "SELECT INGREDIENTS_ID, ING_NAME FROM ingredients WHERE ING_QUANTITY > 0 ORDER BY ING_NAME ASC";
+$ingredientsResult = mysqli_query($db, $ingredientsSql) or die("Bad SQL: $ingredientsSql");
+
+$ingredientsDropdown = "<select class='form-control' name='INGREDIENTS_ID[]' required>
+                            <option disabled selected hidden>Select Ingredient</option>";
+while ($row = mysqli_fetch_assoc($ingredientsResult)) {
+    $ingredientsDropdown .= "<option value='" . $row['INGREDIENTS_ID'] . "'>" . $row['ING_NAME'] . "</option>";
+}
+$ingredientsDropdown .= "</select>";
+
+//
+// 1) FETCH INGREDIENTS (already in your code)
+//
+$ingredientsSql = "
+SELECT INGREDIENTS_ID, ING_NAME
+  FROM ingredients
+ WHERE ING_QUANTITY > 0
+ ORDER BY ING_NAME ASC
+";
+$ingredientsResult = mysqli_query($db, $ingredientsSql)
+                    or die("Bad SQL: $ingredientsSql");
+
+$ingredientsDropdown = "<select class='form-control' name='INGREDIENTS_ID[]' required>
+                        <option disabled selected hidden>Select Ingredient</option>";
+while ($row = mysqli_fetch_assoc($ingredientsResult)) {
+  $ingredientsDropdown .=
+    "<option value='{$row['INGREDIENTS_ID']}'>{$row['ING_NAME']}</option>";
+}
+$ingredientsDropdown .= "</select>";
+
+//
+// 2) FETCH UNITS STRAIGHT FROM YOUR units TABLE
+//
+$unitsSql = "
+    SELECT unit_id, unit_name
+        FROM units
+        WHERE unit_name IN ('Cup','Tablespoon','Piece','Teaspoon','ml')
+        ORDER BY unit_name ASC
+    ";
+  $unitsResult = mysqli_query($db, $unitsSql)
+                 or die("Bad SQL: $unitsSql");
+
+  $unitsDropdown = "<select class='form-control' name='unit_id[]' required>
+                      <option disabled selected hidden>Select Unit</option>";
+  while ($row = mysqli_fetch_assoc($unitsResult)) {
+      $unitsDropdown .=
+        "<option value='{$row['unit_id']}'>{$row['unit_name']}</option>";
+  }
+  $unitsDropdown .= "</select>";
+//
+// 3) STRIP OFF THE OUTER <select> TAGS TO GET ONLY <option>…</option>
+//
+$ingredientsOptions = trim(
+    preg_replace("/^<select[^>]*>|<\/select>$/", "", $ingredientsDropdown)
+  );
+  $unitsOptions = trim(
+    preg_replace("/^<select[^>]*>|<\/select>$/", "", $unitsDropdown)
+  );
+
+
+
+ 
+// ─── DELETE RECIPE ───
+if (isset($_GET['action']) && $_GET['action'] === 'delete') {
+  $recipe_id = (int)$_GET['id'];
+
+  // 1) Restore stock for each ingredient on this recipe
+  $q = "SELECT ingredient_id, quantity, unit_id 
+          FROM recipe_ingredients 
+         WHERE recipe_id = '$recipe_id'";
+  $r = mysqli_query($db, $q) or die(mysqli_error($db));
+  while ($row = mysqli_fetch_assoc($r)) {
+      // reuse your convertToStockUnit function
+      $restore_qty = convertToStockUnit(
+          $row['quantity'],
+          $row['unit_id'],
+          $row['ingredient_id']
+      );
+      mysqli_query($db, "
+          UPDATE ingredients
+             SET ING_QUANTITY = ING_QUANTITY + $restore_qty
+           WHERE INGREDIENTS_ID = {$row['ingredient_id']}
+      ") or die(mysqli_error($db));
+  }
+
+  // 2) Delete the recipe_ingredients rows
+  mysqli_query($db, "
+      DELETE FROM recipe_ingredients
+       WHERE recipe_id = '$recipe_id'
+  ") or die(mysqli_error($db));
+
+  // 3) Delete the recipe itself
+  mysqli_query($db, "
+      DELETE FROM recipes
+       WHERE recipe_id = '$recipe_id'
+  ") or die(mysqli_error($db));
+
+  // 4) Redirect back with a message
+  echo "<script>
+          alert('Recipe deleted successfully.');
+          window.location = 'pro_recipe.php';
+        </script>";
+  exit();
+}
+// ────────────────────────
+
+?>
+
+
+
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h4 class="m-2 font-weight-bold text-primary">
+            Recipes 
+            <a href="#" data-toggle="modal" data-target="#addRecipeModal" class="btn btn-primary" style="border-radius: 0px;">
+                <i class="fas fa-fw fa-plus"></i>
+            </a>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Recipe Code</th>
+                        <th>Recipe Name</th>
+                        <th>Ingredients | Unit</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+<?php
+    // Note: we’ve added r.category to SELECT
+    $query = "
+        SELECT 
+            r.recipe_id, 
+            r.recipe_code, 
+            r.recipe_name,
+            r.category,
+            GROUP_CONCAT(
+                i.ING_NAME, ' | ', 
+                ri.quantity, ' ', 
+                u.unit_name 
+                SEPARATOR '<br>'
+            ) AS recipe_details
+        FROM recipes r
+        LEFT JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+        LEFT JOIN ingredients i ON ri.ingredient_id = i.INGREDIENTS_ID
+        LEFT JOIN units u ON ri.unit_id = u.unit_id
+        GROUP BY r.recipe_id
+        ORDER BY r.recipe_code;
+    ";
+    $result = mysqli_query($db, $query) or die(mysqli_error($db));
+    while ($row = mysqli_fetch_assoc($result)) {
+      echo "<tr>
+              <td>{$row['recipe_code']}</td>
+              <td>{$row['recipe_name']}</td>
+              <td>{$row['recipe_details']}</td>
+              <td>{$row['category']}</td>
+              <td align='right'>
+                <!-- Edit button -->
+                <a class='btn btn-warning btn-sm'
+                   href='#'
+                   data-toggle='modal'
+                   data-target='#editRecipeModal'
+                   onclick='loadEditData({$row['recipe_id']})'>
+                  Edit
+                </a>
+  
+                <!-- Delete button -->
+                <a class='btn btn-danger btn-sm'
+                   href='recipe_transac.php?action=delete&id={$row['recipe_id']}'
+                   onclick=\"return confirm('Are you sure you want to delete this recipe?');\">
+                  Delete
+                </a>
+              </td>
+            </tr>";
+  }
+  
+?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Recipe Modal -->
+<div class="modal fade" id="addRecipeModal" tabindex="-1" role="dialog" aria-labelledby="addRecipeLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addRecipeLabel">Add Recipe</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addRecipeForm" method="post" action="pro_recipe.php?action=add">
+
+          <!-- Recipe Name -->
+          <div class="form-group">
+            <input class="form-control" placeholder="Recipe Name" name="recipe_name" required>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category" class="form-control" required>
+              <option disabled selected hidden>Select category</option>
+              <option value="Milktea">Milktea</option>
+              <option value="Coffee">Coffee</option>
+              <option value="Snacks">Snacks</option>
+            </select>
+          </div>
+
+          <!-- Ingredients Added List -->
+          <div class="form-group">
+            <label>Ingredients Added</label>
+            <ul id="ingredient-list" class="list-group" style="max-height:150px; overflow:auto;"></ul>
+          </div>
+
+          <!-- Single ingredient selector (will be reused) -->
+          <div class="form-row">
+            <div class="form-group col-md-5">
+                <label>Ingredient</label>
+                    <select id="ingredient_select" class="form-control" required>
+                        <option disabled selected hidden>Select Ingredient</option>
+                        <?php echo $ingredientsOptions; ?>
+                    </select>
+            </div>
+            <div class="form-group col-md-3">
+              <label>Quantity</label>
+              <input id="qty_input" 
+                     type="number" 
+                     step="0.5" 
+                     min="1" 
+                     class="form-control" 
+                     placeholder="Qty">
+            </div>
+            <div class="form-group col-md-4">
+                <label>Unit</label>
+                <select id="unit_select" class="form-control" required>
+                <option disabled selected hidden>Select Unit</option>
+                <?php echo $unitsOptions; ?>
+                </select>
+            </div>
+          </div>
+
+          <!-- Real inputs for POST (hidden) -->
+          <div id="hidden-inputs"></div>
+
+          <!-- Actions -->
+          <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addIngredient()">
+            Add Ingredient
+          </button>
+          <hr>
+          <button type="submit" class="btn btn-success"><i class="fa fa-check fa-fw"></i> Save</button>
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── New Script for Add Ingredient ─── -->
+<script>
+    // a counter to give each row a unique ID
+    let addIngIndex = 0;
+
+function addIngredient() {
+  const ingSel   = document.getElementById('ingredient_select');
+  const unitSel  = document.getElementById('unit_select');
+  const qtyInput = document.getElementById('qty_input');
+
+  const ingId    = ingSel.value;
+  const ingText  = ingSel.options[ingSel.selectedIndex].text;
+  const unitId   = unitSel.value;
+  const unitText = unitSel.options[unitSel.selectedIndex].text;
+  const qty      = qtyInput.value;
+
+  if (!ingId || !unitId || !qty) {
+    return alert('Please select an ingredient, unit, and enter a quantity.');
+  }
+
+  // assign a unique index for this row
+  const idx = addIngIndex++;
+
+  // 1) Add to visible list with a close button
+  const ul = document.getElementById('ingredient-list');
+  const li = document.createElement('li');
+  li.id = `add-row-li-${idx}`;
+  li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+  // text
+  const span = document.createElement('span');
+  span.textContent = `${ingText} | ${qty} ${unitText}`;
+  li.appendChild(span);
+
+  // close button
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'close';
+  btn.setAttribute('aria-label','Remove');
+  btn.innerHTML = '<span aria-hidden="true">&times;</span>';
+  btn.onclick = () => {
+    // remove the list item AND its hidden inputs
+    document.getElementById(`add-row-li-${idx}`)?.remove();
+    document.getElementById(`add-row-${idx}`)?.remove();
+  };
+  li.appendChild(btn);
+
+  ul.appendChild(li);
+
+  // 2) Create a wrapper div for the hidden inputs so we can remove them easily
+  const hidden = document.getElementById('hidden-inputs');
+  hidden.insertAdjacentHTML('beforeend', `
+    <div id="add-row-${idx}">
+      <input type="hidden" name="INGREDIENTS_ID[]" value="${ingId}">
+      <input type="hidden" name="quantity[]"       value="${qty}">
+      <input type="hidden" name="unit_id[]"        value="${unitId}">
+    </div>
+  `);
+
+  // 3) Clear the small form for the next entry
+  ingSel.selectedIndex  = 0;
+  unitSel.selectedIndex = 0;
+  qtyInput.value        = '';
+}
+
+// reset everything when the modal closes
+$('#addRecipeModal').on('hidden.bs.modal', function () {
+  addIngIndex = 0;
+  document.getElementById('ingredient-list').innerHTML = '';
+  document.getElementById('hidden-inputs').innerHTML   = '';
+  document.getElementById('addRecipeForm').reset();
+});
+
+  function loadEditData(recipeId) {
+    const list   = document.getElementById('edit-ingredient-list');
+    const hidden = document.getElementById('edit-hidden-inputs');
+    list.innerHTML   = '';
+    hidden.innerHTML = '';
+    document.getElementById('editRecipeForm').reset();
+
+    // set form action & code field
+    document.getElementById('editRecipeForm').action    = 
+      `recipe_transac.php?action=edit&id=${recipeId}`;
+    // fetch the full record (must return { recipe_code, recipe_name, category, ingredients: [...] })
+    fetch(`get_recipe_details.php?recipe_id=${recipeId}`)
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('edit-recipe-code').value = data.recipe_code;
+        document.getElementById('edit-recipe-name').value     = data.recipe_name;
+        document.getElementById('edit-recipe-category').value = data.category;
+
+        data.ingredients.forEach((ing, idx) => {
+          // visible list item
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.innerText = `${ing.name} | ${ing.quantity} ${ing.unit_name}`;
+
+          // delete button
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'close';
+          btn.innerHTML = '&times;';
+          btn.onclick = () => {
+            li.remove();
+            const wrapper = document.getElementById(`edit-row-${idx}`);
+            if (wrapper) wrapper.remove();
+          };
+          li.appendChild(btn);
+          list.appendChild(li);
+
+          // hidden inputs wrapped for easy removal
+          hidden.insertAdjacentHTML('beforeend', `
+            <div id="edit-row-${idx}">
+              <input type="hidden" name="INGREDIENTS_ID[]" value="${ing.id}">
+              <input type="hidden" name="quantity[]"       value="${ing.quantity}">
+              <input type="hidden" name="unit_id[]"        value="${ing.unit_id}">
+            </div>
+          `);
+        });
+      })
+      .catch(console.error);
+  }
+
+  function addEditIngredient() {
+    const ingSel  = document.getElementById('edit-ingredient-select');
+    const qtyIn   = document.getElementById('edit-qty-input');
+    const unitSel = document.getElementById('edit-unit-select');
+
+    const id      = ingSel.value;
+    const name    = ingSel.options[ingSel.selectedIndex].text;
+    const qty     = qtyIn.value;
+    const unitId  = unitSel.value;
+    const unitTxt = unitSel.options[unitSel.selectedIndex].text;
+
+    if (!id || !qty || !unitId) {
+      return alert('Please select ingredient, quantity, and unit.');
+    }
+
+    // append to list
+    const li = document.createElement('li');
+    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+    li.innerText = `${name} | ${qty} ${unitTxt}`;
+    document.getElementById('edit-ingredient-list').appendChild(li);
+
+    // add hidden inputs
+    document.getElementById('edit-hidden-inputs').insertAdjacentHTML('beforeend', `
+      <input type="hidden" name="INGREDIENTS_ID[]" value="${id}">
+      <input type="hidden" name="quantity[]"       value="${qty}">
+      <input type="hidden" name="unit_id[]"        value="${unitId}">
+    `);
+
+    // clear selectors
+    ingSel.selectedIndex = 0;
+    qtyIn.value = '';
+    unitSel.selectedIndex = 0;
+  }
+
+  // reset on close
+  $('#editRecipeModal').on('hidden.bs.modal', () => {
+    document.getElementById('editRecipeForm').reset();
+    document.getElementById('edit-ingredient-list').innerHTML = '';
+    document.getElementById('edit-hidden-inputs').innerHTML   = '';
+  });
+</script>
+
+<!-- Edit Recipe Modal -->
+<div class="modal fade" id="editRecipeModal" tabindex="-1" aria-labelledby="editRecipeLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editRecipeLabel">Edit Recipe</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+      </div>
+      <div class="modal-body">
+      <form id="editRecipeForm" method="post" action="recipe_transac.php?action=edit">
+          <!-- Recipe Code (read-only) -->
+          <div class="form-group">
+            <label>Recipe Code</label>
+            <input type="text" id="edit-recipe-code" class="form-control" readonly>
+          </div>
+
+          <!-- Recipe Name -->
+          <div class="form-group">
+            <label>Recipe Name</label>
+            <input type="text" id="edit-recipe-name" name="recipe_name" class="form-control" required>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label>Category</label>
+            <select id="edit-recipe-category" name="category" class="form-control" required>
+              <option disabled>Select category</option>
+              <option value="Milktea">Milktea</option>
+              <option value="Coffee">Coffee</option>
+              <option value="Snacks">Snacks</option>
+            </select>
+          </div>
+
+          <!-- Existing Ingredients List -->
+          <div class="form-group">
+            <label>Ingredients</label>
+            <ul id="edit-ingredient-list" class="list-group mb-2" style="max-height:150px; overflow:auto;"></ul>
+          </div>
+
+          <!-- Hidden inputs for ALL ingredients -->
+          <div id="edit-hidden-inputs"></div>
+
+          <!-- Row to add one more ingredient -->
+          <div class="form-row mb-3">
+            <div class="form-group col-md-5">
+              <label>Ingredient</label>
+              <select id="edit-ingredient-select" class="form-control">
+                <option disabled selected hidden>Select Ingredient</option>
+                <?php echo $ingredientsOptions; ?>
+              </select>
+            </div>
+            
+            <div class="form-group col-md-3">
+              <label>Quantity</label>
+              <input type="number" id="edit-qty-input" step="0.5" min="1" class="form-control" placeholder="Qty">
+            </div>
+            <div class="form-group col-md-4">
+              <label>Unit</label>
+              <select id="edit-unit-select" class="form-control">
+                <option disabled selected hidden>Select Unit</option>
+                <?php echo $unitsOptions; ?>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addEditIngredient()">
+            Add Ingredient
+          </button>
+          <hr>
+          <button type="submit" class="btn btn-success">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?php include '../includes/footer.php'; ?>

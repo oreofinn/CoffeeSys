@@ -9,7 +9,7 @@
       <footer class="sticky-footer bg-white">
         <div class="container my-auto">
           <div class="copyright text-center my-auto">
-              <span>Copyright © 2022. All Rights Reserved.</span>
+              <span>TAKEOUTCOFFEE PRODUCTS INC.</span>
           </div>
         </div>
       </footer>
@@ -36,7 +36,7 @@
             <span aria-hidden="true">×</span>
           </button>
         </div>
-        <div class="modal-body"><?php echo  $_SESSION['FIRST_NAME']; ?> are you sure do you want to logout?</div>
+        <div class="modal-body"><?php echo  $_SESSION['FIRST_NAME']; ?> Do you want to logout?</div>
         <div class="modal-footer">
           <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
           <a class="btn btn-primary" href="logout.php">Logout</a>
@@ -66,8 +66,8 @@
 
 <!-- PROFILE OVERLAY NA MODAL -->
 <div id="overlay" onclick="off()">
-  <div id="text">I'm <?php echo  $_SESSION['FIRST_NAME']. ' '.$_SESSION['LAST_NAME'] ;?><BR>
-    From <?php echo  $_SESSION['PROVINCE']. ' '.$_SESSION['CITY'] ;?></div>
+  <div id="text"><?php echo  $_SESSION['FIRST_NAME']. ' '.$_SESSION['LAST_NAME'] ;?><BR>
+    <?php echo  $_SESSION['PROVINCE']. ' '.$_SESSION['CITY'] ;?></div>
 </div>
 <script>
 function on() {

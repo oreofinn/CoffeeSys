@@ -37,8 +37,8 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Stock Control Management System </title>
-  <link rel="icon" href="https://www.freeiconspng.com/uploads/sales-icon-7.png">
+  <title>TAKEOUTCOFFEE </title>
+  <link rel="icon" href="">
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -65,13 +65,13 @@
       <div id="content">
 
         <!-- Topbar -->
-        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        <nav class="navbar navbar-expand navbar-light bg-darkbrown topbar mb-4 static-top shadow" style="background-color: #4B2E2E;">
 
-      <a class="sidebar-brand d-flex align-items-center justify-content-center"  style="text-decoration: none; font-size: 18px; font-weight: bold;" href="index.php">
-        <div class="sidebar-brand-icon rotate-n-15">
-          <i class="fas fa-laugh-wink"></i>
+      <a class="sidebar-brand d-flex align-items-center justify-content-center"  style="text-decoration: none; font-size: 18px; font-weight: bold; color: white;" href="index.php">
+        <div class="">
+          <i class=""></i>
         </div>
-        <div class="sidebar-brand-text mx-3">Stock Control Management System</div>
+        <div class="sidebar-brand-text mx-3">TAKEOUTCOFFEE</div>
       </a>
 
           <!-- Topbar Navbar -->
@@ -79,7 +79,7 @@
 
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link" href="pos.php" role="button">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">POS</span>
+                <span class="mr-2 d-none d-lg-inline text-white-600 small">ORDER</span>
               </a>
             </li>
 
@@ -88,7 +88,7 @@
             <!-- Nav Item - User Information -->
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?php echo  $_SESSION['FIRST_NAME']. ' '.$_SESSION['LAST_NAME'] ;?></span>
+                <span class="mr-2 d-none d-lg-inline text-white-600 small"><?php echo  $_SESSION['FIRST_NAME']. ' '.$_SESSION['LAST_NAME'] ;?></span>
                 <img class="img-profile rounded-circle"
                 <?php
                   if($_SESSION['GENDER']=='Male'){

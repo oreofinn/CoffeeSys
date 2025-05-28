@@ -28,18 +28,30 @@ include'../includes/sidebar.php';
             <a href="product.php?action=add" type="button" class="btn btn-primary bg-gradient-primary btn-block"> <i class="fas fa-flip-horizontal fa-fw fa-share"></i> Back</a>
             <div class="card-body">
           <?php 
-            $query = 'SELECT PRODUCT_ID, PRODUCT_CODE, NAME,DESCRIPTION, COUNT(`QTY_STOCK`) AS "QTY_STOCK", COUNT(`ON_HAND`) AS "ON_HAND",PRICE, c.CNAME FROM product p join category c on p.CATEGORY_ID=c.CATEGORY_ID WHERE PRODUCT_CODE ='.$_GET['id'];
-            $result = mysqli_query($db, $query) or die(mysqli_error($db));
+            // Debug the query
+            $debug_query = 'SELECT PRODUCT_ID, PRODUCT_CODE, NAME, DESCRIPTION, QTY_STOCK, ON_HAND, PRICE, c.category_name FROM product p join category c on p.category_id=c.category_id WHERE PRODUCT_CODE = "'.$_GET['id'].'"';
+            // echo "<pre>$debug_query</pre>"; // Uncomment to debug
+            
+            $result = mysqli_query($db, $debug_query) or die(mysqli_error($db));
+            
+            // Check if query returned any rows
+            if(mysqli_num_rows($result) > 0) {
               while($row = mysqli_fetch_array($result))
               {   
-                $zz= $row['PRODUCT_ID'];
-                $zzz= $row['PRODUCT_CODE'];
-                $i= $row['NAME'];
-                $a=$row['DESCRIPTION'];
-                $c=$row['PRICE'];
-                $d=$row['CNAME'];
+                $zz = $row['PRODUCT_ID'];
+                $zzz = $row['PRODUCT_CODE'];
+                $i = $row['NAME'];
+                $a = $row['DESCRIPTION'];
+                $c = $row['PRICE'];
+                $d = $row['category_name'];
+                
+                // Debug values
+                // echo "<pre>Price: ".var_export($c, true)."</pre>"; // Uncomment to debug
               }
-              $id = $_GET['id'];
+            } else {
+              echo "<div class='alert alert-danger'>No product found with code: ".$_GET['id']."</div>";
+            }
+            $id = $_GET['id'];
           ?>
 
                   <div class="form-group row text-left">
@@ -86,7 +98,7 @@ include'../includes/sidebar.php';
                       </div>
                       <div class="col-sm-9">
                         <h5>
-                          : <?php echo $c; ?><br>
+                          : <?php echo (!empty($c)) ? number_format($c, 2) : 'N/A'; ?><br>
                         </h5>
                       </div>
                     </div>
@@ -105,28 +117,10 @@ include'../includes/sidebar.php';
                 </div>
           </div></center>
 
-          <div class="card shadow mb-4 col-xs-12 col-md-15 border-bottom-primary">
-            <div class="card-header py-3">
-              <h4 class="m-2 font-weight-bold text-primary">Inventory</h4>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"> 
-               <thead>
-                   <tr>
-                     <th>Product Code</th>
-                     <th>Name</th>
-                     <th>Quantity</th>
-                     <th>On Hand</th>
-                     <th>Category</th>
-                     <th>Supplier</th>
-                     <th>Date Stock In</th>
-                   </tr>
-               </thead>
-          <tbody>
+          
 
 <?php                  
-    $query = 'SELECT PRODUCT_ID, PRODUCT_CODE, NAME, COUNT("QTY_STOCK") AS QTY_STOCK, COUNT("ON_HAND") AS ON_HAND, CNAME, COMPANY_NAME, p.SUPPLIER_ID, DATE_STOCK_IN FROM product p join category c on p.CATEGORY_ID=c.CATEGORY_ID JOIN supplier s ON p.SUPPLIER_ID=s.SUPPLIER_ID where PRODUCT_CODE ='.$zzz.' GROUP BY `SUPPLIER_ID`, `DATE_STOCK_IN`';
+    $query = 'SELECT PRODUCT_ID, PRODUCT_CODE, NAME, QTY_STOCK, ON_HAND, c.category_name AS CNAME, COMPANY_NAME, p.SUPPLIER_ID, DATE_STOCK_IN FROM product p join category c on p.CATEGORY_ID=c.CATEGORY_ID JOIN supplier s ON p.SUPPLIER_ID=s.SUPPLIER_ID where PRODUCT_CODE = "'.$zzz.'" GROUP BY `SUPPLIER_ID`, `DATE_STOCK_IN`';
         $result = mysqli_query($db, $query) or die (mysqli_error($db));
       
             while ($row = mysqli_fetch_assoc($result)) {

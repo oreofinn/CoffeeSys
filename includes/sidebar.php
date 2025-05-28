@@ -36,8 +36,8 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title> Stock Control Management System </title>
-  <link rel="icon" href="https://www.freeiconspng.com/uploads/sales-icon-7.png">
+  <title> TAKEOUTCOFFEE </title>
+  <link rel="icon" href="">
 
   <!-- Custom fonts for this template-->
   <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -56,14 +56,14 @@
   <div id="wrapper">
 
     <!-- Sidebar -->
-    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color: #4B2E2E;">
 
       <!-- Sidebar - Brand -->
       <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
         <div class="sidebar-brand-icon rotate-n-15">
-          <i class="fas fa-laugh-wink"></i>
+          <i class="C:\Users\Lance Vidallon\Desktop\COFFEE.png"></i>
         </div>
-        <div class="sidebar-brand-text mx-3">Stock Control System</div>
+        <div class="sidebar-brand-text mx-3 text-white" >TAKEOUTCOFFEE</div>
       </a>
 
       <!-- Divider -->
@@ -73,44 +73,58 @@
       <li class="nav-item">
         <a class="nav-link" href="index.php">
           <i class="fas fa-fw fa-home"></i>
-          <span>Home</span></a>
+          <span>Dashboard</span></a>
       </li>
       <!-- Divider -->
       <hr class="sidebar-divider">
 
       <!-- Heading -->
       <div class="sidebar-heading">
-        General
+        
       </div>
       <!-- Tables Buttons -->
-      <li class="nav-item">
-        <a class="nav-link" href="customer.php">
-          <i class="fas fa-fw fa-user"></i>
-          <span>Customer</span></a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link" href="employee.php">
-          <i class="fas fa-fw fa-user"></i>
-          <span>Employee</span></a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link" href="product.php">
-          <i class="fas fa-fw fa-table"></i>
-          <span>Product</span></a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link" href="inventory.php">
-          <i class="fas fa-fw fa-archive"></i>
-          <span>Inventory</span></a>
-      </li>
       
       <li class="nav-item">
         <a class="nav-link" href="transaction.php">
-          <i class="fas fa-fw fa-retweet"></i>
-          <span>Transaction</span></a>
+          <i class="fas fa-fw fa-cogs"></i>
+          <span>Orders History</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="forecast.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Forecasting</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="inventory.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Inventory</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="pro_ingredients.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Ingredients</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="pro_recipe.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Recipes</span></a>
+      </li>
+
+
+      <li class="nav-item">
+        <a class="nav-link" href="product.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Products</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="category.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Category</span></a>
       </li>
       
       <li class="nav-item">
@@ -118,11 +132,31 @@
           <i class="fas fa-fw fa-cogs"></i>
           <span>Supplier</span></a>
       </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="expiration.php">
+          <i class="fas fa-fw fa-calendar-alt"></i>
+          <span>Expiration</span>
+        </a>
+      </li>
+
+
+      <!--<li class="nav-item">
+        <a class="nav-link" href="employee.php">
+          <i class="fas fa-fw fa-user"></i>
+          <span>Employee</span></a>
+      </li>-->
       
       <li class="nav-item">
         <a class="nav-link" href="user.php">
           <i class="fas fa-fw fa-users"></i>
           <span>Accounts</span></a>
+      </li>
+
+      <!--<li class="nav-item">
+        <a class="nav-link" href="customer.php">
+          <i class="fas fa-fw fa-user"></i>
+          <span>Guests</span></a>
       </li>
       <!-- Divider -->
       <hr class="sidebar-divider d-none d-md-block">

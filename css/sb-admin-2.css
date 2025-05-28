@@ -10505,6 +10505,12 @@ a:focus {
   background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
   background-size: cover;
 }
+.bg-gradient-dark-brown {
+  background-color: #78261f;
+  background-size: cover;
+  background-image: linear-gradient(180deg, #6B4226, #4B2E2E); /* Gradient from a lighter to a darker shade of brown */
+   /* Optional: Text color for better readability */
+}
 
 .bg-gradient-success {
   background-color: #1cc88a;
@@ -11028,6 +11034,7 @@ a:focus {
 
 .sidebar .sidebar-brand .sidebar-brand-text {
   display: none;
+  color: white;
 }
 
 .sidebar hr.sidebar-divider {
@@ -11100,6 +11107,7 @@ a:focus {
   }
   .sidebar .sidebar-brand .sidebar-brand-text {
     display: inline;
+    color: white;
   }
   .sidebar .sidebar-heading {
     text-align: left;

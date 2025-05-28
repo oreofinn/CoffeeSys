@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Forecasting Dashboard</title>
+  <style>
+    /* --- Base styles --- */
+    body { font-family: sans-serif; margin: 0; }
+    header { background:#333; color:#fff; padding:1rem; display:flex; align-items:center; }
+    header nav a { color:#fff; margin-right:1rem; text-decoration:none; }
+    main { padding:1rem; }
+    .event-selector { margin-bottom:1.5rem; }
+    .cards { display:flex; gap:1rem; }
+    .card { flex:1; border:1px solid #ddd; border-radius:8px; padding:1rem; box-shadow:0 2px 4px rgba(0,0,0,0.1); cursor:pointer; }
+    .card img { width:100%; height:150px; object-fit:cover; border-radius:4px; }
+    .chart { margin-top:1.5rem; height:200px; border:1px solid #eee; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#888; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="flex:1">Wag Po!</h1>
+    <nav>
+      <a href="/inventory">Inventory</a>
+      <a href="/sales">Sales</a>
+      <a href="/forecast" style="font-weight:bold">Forecast</a>
+      <a href="/reports">Reports</a>
+      <a href="/settings">Settings</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. Event selector -->
+    <div class="event-selector">
+      <label for="event">Choose event:</label>
+      <select id="event" name="event">
+        <option>First Day of Classes</option>
+        <option>Valentine’s Day</option>
+        <option>Summer Break</option>
+        <option>Rainy Season</option>
+        <!-- …other events… -->
+      </select>
+    </div>
+
+    <!-- 2. Top 3 product cards -->
+    <div class="cards">
+      <div class="card">
+        <img src="placeholder.jpg" alt="Product Image">
+        <h2>Product A</h2>
+        <p>Predicted: 120 units</p>
+        <p>Confidence: 78%</p>
+      </div>
+      <div class="card">
+        <img src="placeholder.jpg" alt="Product Image">
+        <h2>Product B</h2>
+        <p>Predicted: 95 units</p>
+        <p>Confidence: 65%</p>
+      </div>
+      <div class="card">
+        <img src="placeholder.jpg" alt="Product Image">
+        <h2>Product C</h2>
+        <p>Predicted: 80 units</p>
+        <p>Confidence: 52%</p>
+      </div>
+    </div>
+
+    <!-- 3. Mini trend chart placeholder -->
+    <div class="chart">
+      [Trend chart for “Product A” goes here]
+    </div>
+  </main>
+</body>
+</html>

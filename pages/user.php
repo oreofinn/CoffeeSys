@@ -83,7 +83,7 @@ include'../includes/sidebar.php';
 
          <div class="card shadow mb-4">
             <div class="card-header py-3">
-              <h4 class="m-2 font-weight-bold text-primary">User Accounts&nbsp;<a  href="#" data-toggle="modal" data-target="#supplierModal" type="button" class="btn btn-primary bg-gradient-primary" style="border-radius: 0px;"><i class="fas fa-fw fa-plus"></i></a></h4>
+              <h4 class="m-2 font-weight-bold text-primary">User Accounts&nbsp;<a  href="#" data-toggle="modal" data-target="#supplierModal" type="button" class="btn btn-primary " style="border-radius: 0px;"><i class="fas fa-fw fa-plus"></i></a></h4>
             </div>
             <div class="card-body">
             <div class="table-responsive">
@@ -120,6 +120,11 @@ include'../includes/sidebar.php';
                                 <li>
                                   <a type="button" class="btn btn-warning bg-gradient-warning btn-block" style="border-radius: 0px;" href="us_edit.php?action=edit & id='.$row['ID']. '">
                                     <i class="fas fa-fw fa-edit"></i> Edit
+                                  </a>
+                                </li>
+                                <li>
+                                  <a type="button" class="btn btn-danger bg-gradient-danger btn-block" style="border-radius: 0px;" href="us_transac.php?action=delete & id='.$row['ID']. '" onclick="return confirm(\'Are you sure you want to delete this user account?\')">
+                                    <i class="fas fa-fw fa-trash"></i> Delete
                                   </a>
                                 </li>
                             </ul>

@@ -20,18 +20,35 @@ include'../includes/sidebar.php';
 <?php
   }           
 }
-$sql = "SELECT DISTINCT CNAME, CATEGORY_ID FROM category order by CNAME asc";
+$sql = "SELECT DISTINCT category_name, category_id FROM category ORDER BY category_name ASC";
 $result = mysqli_query($db, $sql) or die ("Bad SQL: $sql");
 
 $opt = "<select class='form-control' name='category' required>
         <option value='' disabled selected hidden>Select Category</option>";
   while ($row = mysqli_fetch_assoc($result)) {
-    $opt .= "<option value='".$row['CATEGORY_ID']."'>".$row['CNAME']."</option>";
+    $opt .= "<option value='".$row['category_id']."'>".$row['category_name']."</option>";
   }
 
 $opt .= "</select>";
 
-  $query = 'SELECT PRODUCT_ID,PRODUCT_CODE, NAME, DESCRIPTION, QTY_STOCK, PRICE, c.CNAME FROM product p join category c on p.CATEGORY_ID=c.CATEGORY_ID WHERE PRODUCT_ID ='.$_GET['id'];
+// Fetch all recipes for the dropdown
+$recipeSql = "SELECT recipe_id, recipe_name FROM recipes ORDER BY recipe_name ASC";
+$recipeResult = mysqli_query($db, $recipeSql) or die ("Bad SQL: $recipeSql");
+
+$recipeOpt = "<select class='form-control' name='recipe_id' required>
+        <option value='' disabled selected hidden>Select Recipe</option>";
+  while ($row = mysqli_fetch_assoc($recipeResult)) {
+    $recipeOpt .= "<option value='".$row['recipe_id']."'>".$row['recipe_name']."</option>";
+  }
+
+$recipeOpt .= "</select>";
+
+  $query = 'SELECT PRODUCT_ID, PRODUCT_CODE, NAME, DESCRIPTION, p.recipe_id, r.recipe_name, QTY_STOCK, PRICE, c.category_name 
+            FROM product p 
+            JOIN category c ON p.category_id=c.category_id 
+            LEFT JOIN recipes r ON p.recipe_id=r.recipe_id
+            WHERE PRODUCT_ID ='.$_GET['id'];
+            
   $result = mysqli_query($db, $query) or die(mysqli_error($db));
     while($row = mysqli_fetch_array($result))
     {   
@@ -40,7 +57,9 @@ $opt .= "</select>";
       $A = $row['NAME'];
       $B = $row['DESCRIPTION'];
       $C = $row['PRICE'];
-      $D = $row['CNAME'];
+      $D = $row['category_name'];
+      $E = $row['recipe_name'];
+      $recipeId = $row['recipe_id'];
     }
       $id = $_GET['id'];
 ?>
@@ -80,6 +99,18 @@ $opt .= "</select>";
               </div>
               <div class="form-group row text-left text-warning">
                 <div class="col-sm-3" style="padding-top: 5px;">
+                 Recipe:
+                </div>
+                <div class="col-sm-9">
+                  <?php
+                    // Modify the recipe dropdown to select the current recipe
+                    $recipeSelect = str_replace("value='".$recipeId."'", "value='".$recipeId."' selected", $recipeOpt);
+                    echo $recipeSelect;
+                  ?>
+                </div>
+              </div>
+              <div class="form-group row text-left text-warning">
+                <div class="col-sm-3" style="padding-top: 5px;">
                  Price:
                 </div>
                 <div class="col-sm-9">
@@ -88,7 +119,7 @@ $opt .= "</select>";
               </div>
               <div class="form-group row text-left text-warning">
                 <div class="col-sm-3" style="padding-top: 5px;">
-                 Categoty:
+                 Category:
                 </div>
                 <div class="col-sm-9">
                    <?php

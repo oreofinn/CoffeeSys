@@ -1,103 +1,102 @@
 <?php require('session.php');?>
 <?php if(logged_in()){ ?>
-          <script type="text/javascript">
-            window.location = "index.php";
-          </script>
-    <?php
-    } ?>
+    <script type="text/javascript">
+        window.location = "index.php";
+    </script>
+<?php } ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <title>Stock Control Management System</title>
-
-  <link rel="icon" href="https://www.freeiconspng.com/uploads/sales-icon-7.png">
-
-  <!-- Custom fonts for this template-->
-  <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-
-  <!-- Custom styles for this template-->
-  <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="TAKEOUTCOFFEE login portal">
+    <meta name="author" content="">
+    <title>TAKEOUTCOFFEE</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            lightest: '#F5E9D7', // Very light cream
+                            lighter: '#E6C9A8', // Light cream
+                            light: '#D4A76A',   // Caramel
+                            DEFAULT: '#A05F2C', // Rich medium brown
+                            medium: '#7D4B2A',  // Medium dark brown
+                            dark: '#5D3921',    // Dark roast
+                            darkest: '#2C1B10'  // Very dark espresso
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-gradient-primary">
-
-  <div class="container">
-
-    <!-- Outer Row -->
-    <div class="row justify-content-center">
-
-      <div class="col-xl-10 col-lg-12 col-md-9">
-
-        <div class="card o-hidden border-0 shadow-lg my-5">
-          <div class="card-body p-0">
-            <!-- Nested Row within Card Body -->
-            <div class="row shadow">
-              <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-              <div class="col-lg-6">
-                <div class="p-5">
-                  <div class="text-center">
-                    <h1 class="h4 text-gray-900 mb-4">Welcome to Stock Control Management System!</h1>
-                  </div>
-                  <form class="user" role="form" action="processlogin.php" method="post">
-                    <div class="form-group">
-                        <input class="form-control form-control-user" placeholder="Username" name="user" type="text" autofocus>
+<body class="bg-gradient-to-br from-coffee-dark to-coffee-darkest min-h-screen flex items-center justify-center p-5" style="font-family: 'Poppins', sans-serif;">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold text-coffee tracking-wider">TAKEOUTCOFFEE</h1>
+                    <div class="mt-2 inline-block p-2 rounded-full bg-coffee-lighter">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-coffee" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                            <line x1="6" y1="1" x2="6" y2="4"></line>
+                            <line x1="10" y1="1" x2="10" y2="4"></line>
+                            <line x1="14" y1="1" x2="14" y2="4"></line>
+                        </svg>
                     </div>
-                    <div class="form-group">
-                        <input class="form-control form-control-user" placeholder="Password" name="password" type="password" value="">
-                    </div>
-                    <div class="form-group">
-                      <div class="custom-control custom-checkbox small">
-                        <input type="checkbox" class="custom-control-input" id="customCheck">
-                        <label class="custom-control-label" for="customCheck">Remember Me</label>
-                      </div>
-                    </div>
-                    <button class="btn btn-primary btn-user btn-block" type="submit" name="btnlogin">Login</button>
-                    <hr>
-                  <!-- <div class="text-center">
-                    <a class="small" href="register.php">Create an Account!</a>
-                  </div> -->
-                </form>
                 </div>
-              </div>
+                
+                <form class="space-y-6" role="form" action="processlogin.php" method="post">
+                    <div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-coffee-light">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <input class="w-full pl-10 pr-4 py-3 bg-coffee-lightest border border-coffee-lighter rounded-lg focus:outline-none focus:ring-2 focus:ring-coffee-light focus:bg-white transition-all duration-200" 
+                                placeholder="Username" name="user" type="text" autofocus>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-coffee-light">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <input class="w-full pl-10 pr-4 py-3 bg-coffee-lightest border border-coffee-lighter rounded-lg focus:outline-none focus:ring-2 focus:ring-coffee-light focus:bg-white transition-all duration-200" 
+                                placeholder="Password" name="password" type="password">
+                        </div>
+                    </div>
+                    
+                    <button class="w-full py-3 bg-gradient-to-r from-coffee-light to-coffee text-white font-medium rounded-lg shadow hover:from-coffee hover:to-coffee-medium focus:outline-none focus:ring-2 focus:ring-coffee focus:ring-offset-2 transition-all duration-200" 
+                        type="submit" name="btnlogin">
+                        Login
+                    </button>
+                </form>
+                
+                <div class="mt-8 text-center text-sm text-coffee-medium">
+                    <p>Need assistance? Contact your administrator</p>
+                </div>
             </div>
-          </div>
         </div>
-
-      </div>
-
+        
+        <div class="mt-6 text-center text-xs text-coffee-lighter">
+            <p>© <?php echo date('Y'); ?> TAKEOUTCOFFEE. All rights reserved.</p>  
+        </div>
     </div>
-
-  </div>
-
-  <!-- Bootstrap core JavaScript-->
-  <script src="../vendor/jquery/jquery.min.js"></script>
-  <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Core plugin JavaScript-->
-  <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-  <!-- Custom scripts for all pages-->
-  <script src="../js/sb-admin-2.min.js"></script>
-
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-

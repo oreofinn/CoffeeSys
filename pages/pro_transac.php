@@ -1,34 +1,60 @@
 <?php
+include '../includes/connection.php';
 
-include'../includes/connection.php';
-?>
-          <!-- Page Content -->
-          <div class="col-lg-12">
-            <?php
-              $pc = $_POST['prodcode'];
-              $name = $_POST['name'];
-              $desc = $_POST['description'];
-              $qty = $_POST['quantity'];
-              $oh = $_POST['onhand'];
-              $pr = $_POST['price']; 
-              $cat = $_POST['category'];
-              $supp = $_POST['supplier'];
-              $dats = $_POST['datestock']; 
-        
-              switch($_GET['action']){
-                case 'add':  
-                for($i=0; $i < $qty; $i++){
-                    $query = "INSERT INTO product
-                              (PRODUCT_ID, PRODUCT_CODE, NAME, DESCRIPTION, QTY_STOCK, ON_HAND, PRICE, CATEGORY_ID, SUPPLIER_ID, DATE_STOCK_IN)
-                              VALUES (Null,'{$pc}','{$name}','{$desc}',1,1,{$pr},{$cat},{$supp},'{$dats}')";
-                    mysqli_query($db,$query)or die ('Error in updating product in Database '.$query);
-                    }
-                break;
-              }
-            ?>
-              <script type="text/javascript">window.location = "product.php";</script>
-          </div>
+$action = $_GET['action'] ?? '';
 
-<?php
-include'../includes/footer.php';
-?>
+switch ($action) {
+  case 'add':
+    // Gather POST for add
+    $name         = mysqli_real_escape_string($db, $_POST['name']);
+    $desc         = mysqli_real_escape_string($db, $_POST['description']);
+    $recipe_id    = (int) $_POST['recipe'];
+    $category_id  = (int) $_POST['category'];
+    $pm           = mysqli_real_escape_string($db, $_POST['price_medium']);
+    $pl           = mysqli_real_escape_string($db, $_POST['price_large']);
+    $dats         = date('Y-m-d');
+    // Generate product_code as you already do...
+    // Then:
+    $sql = "
+      INSERT INTO product
+        (PRODUCT_CODE, NAME, DESCRIPTION, recipe_id, CATEGORY_ID, price_medium, price_large, DATE_STOCK_IN)
+      VALUES
+        ('{$product_code}', '$name', '$desc', $recipe_id, $category_id, '$pm', '$pl', '$dats')
+    ";
+    mysqli_query($db, $sql) or die(mysqli_error($db));
+    break;
+
+  case 'edit':
+    // Gather POST for edit
+    $id           = (int) $_POST['id'];
+    $name         = mysqli_real_escape_string($db, $_POST['name']);
+    $desc         = mysqli_real_escape_string($db, $_POST['description']);
+    $recipe_id    = (int) $_POST['recipe'];
+    $category_id  = (int) $_POST['category'];
+    $pm           = mysqli_real_escape_string($db, $_POST['price_medium']);
+    $pl           = mysqli_real_escape_string($db, $_POST['price_large']);
+    $sql = "
+      UPDATE product
+      SET
+        NAME         = '$name',
+        DESCRIPTION  = '$desc',
+        recipe_id    = $recipe_id,
+        CATEGORY_ID  = $category_id,
+        price_medium = '$pm',
+        price_large  = '$pl'
+      WHERE PRODUCT_ID = $id
+    ";
+    mysqli_query($db, $sql) or die(mysqli_error($db));
+    break;
+
+  case 'delete':
+    // Gather POST for delete
+    $id = (int) $_POST['id'];
+    $sql = "DELETE FROM product WHERE PRODUCT_ID = $id";
+    mysqli_query($db, $sql) or die(mysqli_error($db));
+    break;
+}
+
+// After any action, go back to the list
+header('Location: product.php');
+exit;

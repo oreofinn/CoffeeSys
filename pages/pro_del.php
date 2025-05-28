@@ -2,6 +2,8 @@
 
 include'../includes/connection.php';
 
+$pc = $_POST['prodcode']; 
+
 	if (!isset($_GET['do']) || $_GET['do'] != 1) {
 						
     	switch ($_GET['type']) {
